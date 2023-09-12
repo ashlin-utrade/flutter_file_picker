@@ -99,20 +99,20 @@ class FilePickerWindows extends FilePicker {
     final fileDialog = FileOpenDialog.createInstance();
 
     final optionsPointer = calloc<Uint32>();
-    hr = fileDialog.getOptions(optionsPointer);
+    hr = fileDialog.GetOptions(optionsPointer);
     if (!SUCCEEDED(hr)) throw WindowsException(hr);
 
     final options = optionsPointer.value |
         FILEOPENDIALOGOPTIONS.FOS_PICKFOLDERS |
         FILEOPENDIALOGOPTIONS.FOS_FORCEFILESYSTEM |
         FILEOPENDIALOGOPTIONS.FOS_NOCHANGEDIR;
-    hr = fileDialog.setOptions(options);
+    hr = fileDialog.SetOptions(options);
     if (!SUCCEEDED(hr)) throw WindowsException(hr);
 
     final title = TEXT(dialogTitle ?? defaultDialogTitle);
-    hr = fileDialog.setTitle(title);
+    hr = fileDialog.SetTitle(title);
     if (!SUCCEEDED(hr)) throw WindowsException(hr);
-    free(title);
+    // free(title);
 
     // TODO: figure out how to set the initial directory via SetDefaultFolder / SetFolder
     // if (initialDirectory != null) {
@@ -129,7 +129,7 @@ class FilePickerWindows extends FilePicker {
     // }
 
     final hwndOwner = lockParentWindow ? GetForegroundWindow() : NULL;
-    hr = fileDialog.show(hwndOwner);
+    hr = fileDialog.Show(hwndOwner);
     if (!SUCCEEDED(hr)) {
       CoUninitialize();
 
@@ -140,17 +140,17 @@ class FilePickerWindows extends FilePicker {
     }
 
     final ppsi = calloc<COMObject>();
-    hr = fileDialog.getResult(ppsi.cast());
+    hr = fileDialog.GetResult(ppsi.cast());
     if (!SUCCEEDED(hr)) throw WindowsException(hr);
 
     final item = IShellItem(ppsi);
     final pathPtr = calloc<Pointer<Utf16>>();
-    hr = item.getDisplayName(SIGDN.SIGDN_FILESYSPATH, pathPtr);
+    hr = item.GetDisplayName(SIGDN.SIGDN_FILESYSPATH, pathPtr as Pointer<Utf16>);
     if (!SUCCEEDED(hr)) throw WindowsException(hr);
 
     final path = pathPtr.value.toDartString();
 
-    hr = item.release();
+    hr = item.Release();
     if (!SUCCEEDED(hr)) throw WindowsException(hr);
 
     CoUninitialize();
